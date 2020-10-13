@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 """
 author:lookingaf
-使用深度学习LSTM进行imdb电影评论情感分析
+使用深度学习LSTM和MLP进行imdb电影评论情感分析
 """
 import numpy as np
 import pandas
@@ -15,8 +15,7 @@ from keras.models import  Model
 
 MAX_NUM = 50000
 SENTENCE_NUM = 25000
-MAX_SEQUENCE_LENGTH = 1000
-MAX_NB_WORDS = 20000
+MAX_NUM_WORDS = 20000
 
 
 def clean_text(string):
@@ -36,11 +35,11 @@ with open('data_50.txt','r',encoding='utf-8') as f:
         arra = np.asarray(data_word.split()[1:], dtype='float32')
         embeddings_dict[word] = arra
 
-tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
+tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
 tokenizer.fit_on_texts(texts)
 sequences = tokenizer.texts_to_sequences(texts)
 word_index = tokenizer.word_index
-data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
+data = pad_sequences(sequences, maxlen=1000)
 
 data = data[np.arange(MAX_NUM)]
 labels = labels[np.arange(MAX_NUM)]
@@ -60,12 +59,12 @@ embedding_layer = Embedding(len(word_index) + 1,
                             50,
                             weights=[embedding_matrix],
                             mask_zero=False,
-                            input_length=MAX_SEQUENCE_LENGTH,
+                            input_length=1000,
                             trainable=False)
 
 def Lstm():
     print('LSTM:')
-    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')#输入层
+    sequence_input = Input(shape=(1000,), dtype='int32')#输入层
     embedded_sequences = embedding_layer(sequence_input)
     l_gru = Bidirectional(LSTM(50, return_sequences=False))(embedded_sequences)
     dense_1 = Dense(50,activation='sigmoid')(l_gru)
@@ -83,9 +82,8 @@ def Lstm():
 
 def MLP():
     print('MLP:')
-    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')  # 输入层
+    sequence_input = Input(shape=(1000,), dtype='int32')  # 输入层
     embedded_sequences = embedding_layer(sequence_input)
-    # 通过计算用户和物品或物品和物品的Embedding相似度，来缩小推荐候选库的范围。实现高维稀疏特征向量向低维稠密特征向量的转换。训练好的embedding可以当作输入深度学习模型的特征。
     dense_1 = Dense(50, activation='relu')(embedded_sequences)  # 全连接神经网络层，隐藏层
     Max_pooling = GlobalMaxPooling1D()(dense_1)
     dense_2 = Dense(2, activation='softmax')(Max_pooling)  # 输出层
