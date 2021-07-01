@@ -6,6 +6,5 @@ Sentiment analysis of movie reviews on imdb dataset
 词向量所使用的是glove.6B.50d，下载地址为：https://nlp.stanford.edu/projects/glove/
 
 其中机器学习采用的是朴素贝叶斯
-
-深度学习采用的是MLP和LSTM
+，深度学习采用的是MLP和LSTM
 
